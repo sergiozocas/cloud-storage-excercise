@@ -28,4 +28,13 @@ public class FileService {
     public int deleteFile(Integer fileid) {
         return fileMapper.deleteFile(fileid);
     }
+
+    public boolean existsFile(String filename) {
+        File file = fileMapper.getFileByName(filename);
+        if (file != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

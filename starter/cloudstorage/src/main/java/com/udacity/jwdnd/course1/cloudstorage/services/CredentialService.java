@@ -54,4 +54,12 @@ public class CredentialService {
     public int deleteCredential(Integer credentialid) {
         return credentialMapper.deleteCredential(credentialid);
     }
+
+    public boolean existCredential(String url) {
+        Credential credential = credentialMapper.getCredentialByUrl(url);
+        if (credential != null)
+            return true;
+        else
+            return false;
+    }
 }

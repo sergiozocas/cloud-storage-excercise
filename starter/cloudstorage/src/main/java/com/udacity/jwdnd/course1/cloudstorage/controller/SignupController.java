@@ -32,10 +32,11 @@ public class SignupController {
                 return "signup";
             }
             if (userService.isUsernameAvailable(user.getUsername())) {
-                if (userService.insertUser(user) > 0)
+                if (userService.insertUser(user) > 0) {
                     model.addAttribute("success", true);
-                else
-                    model.addAttribute("message", "");
+                    return "login";
+                } else
+                    model.addAttribute("message", "There has been an error in signup process, try again");
             } else {
                 model.addAttribute("message", "Username already exists");
             }

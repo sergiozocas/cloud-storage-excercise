@@ -9,6 +9,9 @@ public interface CredentialMapper {
     @Select("select * from Credentials where credentialid=#{credentialid}")
     public Credential getCredential(Integer credentialid);
 
+    @Select("select * from Credentials where url=#{url}")
+    public Credential getCredentialByUrl(String url);
+
     @Select("select * from Credentials where userid=#{userid}")
     public Credential[] getUserCredentials(Integer userid);
 

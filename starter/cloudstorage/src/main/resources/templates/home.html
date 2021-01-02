@@ -15,6 +15,9 @@
                     <button type="submit" class="btn btn-secondary float-right" id="idLogoutButton">Logout</button>
                 </form>
             </div>
+            <div id="messages" class="w-75 alert alert-info" th:if="${message != null}" th:text="${message}">
+                App message
+            </div>
             <div id="contentDiv" style="clear: right;">
                 <nav style="clear: right;">
                     <div class="nav nav-tabs" id="nav-tab" role="tablist">

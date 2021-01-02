@@ -51,26 +51,27 @@ public class HomeController {
 
     @PostMapping("/upload")
     public String postUpload (@ModelAttribute("credentialForm") Credential credential, @ModelAttribute("noteForm") Note note,  @RequestParam("fileUpload") MultipartFile fileUpload, Principal principal, Model model) {
-        model.addAttribute("success", false);
-        if (fileUpload.isEmpty()) {
-            model.addAttribute("message", "No selected file to upload");
-            return "home";
-        }
         try {
-            File file = new File();
             User user = userService.getUser(principal.getName());
-            file.setFilename(fileUpload.getOriginalFilename());
-            file.setContenttype(fileUpload.getContentType());
-            file.setFilesize(String.valueOf(fileUpload.getSize()));
-            file.setUserid(user.getUserid());
-            file.setFiledata(fileUpload.getBytes());
+            if (fileUpload.isEmpty()) {
+                model.addAttribute("message", "No selected file to upload");
+                model.addAttribute("activeTab", "nav-files-tab");
+            } else {
+                if (fileService.existsFile(fileUpload.getOriginalFilename())) {
+                    model.addAttribute("message", "Filename duplicated, not inserted!");
+                } else {
+                    File file = new File();
+                    file.setFilename(fileUpload.getOriginalFilename());
+                    file.setContenttype(fileUpload.getContentType());
+                    file.setFilesize(String.valueOf(fileUpload.getSize()));
+                    file.setUserid(user.getUserid());
+                    file.setFiledata(fileUpload.getBytes());
 
-            fileService.insertFile(file);
-
+                    fileService.insertFile(file);
+                    model.addAttribute("message", "New File added successfully!");
+                }
+            }
             refreshPageContents(user.getUserid(), model, "nav-files-tab");
-
-            model.addAttribute("success",true);
-            model.addAttribute("message","New File added successfully!");
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("message","There has been an error!");
@@ -79,65 +80,114 @@ public class HomeController {
     }
 
     @GetMapping("/viewfile/{fileId}")
-    public ResponseEntity<Resource> getFile(@PathVariable Integer fileId) {
-        File file = fileService.getFile(fileId);
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(file.getContenttype()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""
-                + file.getFilename() + "\"").body(new ByteArrayResource(file.getFiledata()));
+    public ResponseEntity<Resource> getFile(@PathVariable Integer fileId, Model model) {
+        try {
+            File file = fileService.getFile(fileId);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(file.getContenttype()))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\""
+                            + file.getFilename() + "\"").body(new ByteArrayResource(file.getFiledata()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("message","There has been an error!");
+        }
+        return null;
     }
 
     @GetMapping("/deletefile/{fileId}")
     public String deleteFile(@ModelAttribute("credentialForm") Credential credential, @ModelAttribute("noteForm") Note note,  @PathVariable Integer fileId, Principal principal, Model model) {
-        if (fileService.deleteFile(fileId) > 0) {
-            User user = userService.getUser(principal.getName());
-            refreshPageContents(user.getUserid(), model, "nav-files-tab");
+        try {
+            if (fileService.deleteFile(fileId) > 0) {
+                User user = userService.getUser(principal.getName());
+                refreshPageContents(user.getUserid(), model, "nav-files-tab");
+                model.addAttribute("message","File deleted!");
+
+            } else {
+                model.addAttribute("message","There has been an error!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("message","There has been an error!");
         }
         return "home";
     }
 
     @GetMapping("/deletenote/{noteId}")
     public String deleteNote(@ModelAttribute("credentialForm") Credential credential, @ModelAttribute("noteForm") Note note, @PathVariable Integer noteId, Principal principal, Model model) {
-        if (noteService.deleteNote(noteId) > 0) {
-            User user = userService.getUser(principal.getName());
-            refreshPageContents(user.getUserid(), model, "nav-notes-tab");
+        try {
+            if (noteService.deleteNote(noteId) > 0) {
+                User user = userService.getUser(principal.getName());
+                refreshPageContents(user.getUserid(), model, "nav-notes-tab");
+                model.addAttribute("message","Note deleted!");
+            } else {
+                model.addAttribute("message", "There has been an error!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("message","There has been an error!");
         }
         return "home";
     }
 
     @PostMapping("/insertupdatenote")
     public String insertUpdateNote(@ModelAttribute("credentialForm") Credential credential, @ModelAttribute("noteForm") Note note, Principal principal, Model model) {
-        User user = userService.getUser(principal.getName());
-        note.setUserid(user.getUserid());
-        if (noteService.getNote(note.getNoteid()) != null) {
-            noteService.updateNote(note);
-        } else {
-            noteService.insertNote(note);
+        try {
+            User user = userService.getUser(principal.getName());
+            note.setUserid(user.getUserid());
+            if (noteService.getNote(note.getNoteid()) != null) {
+                noteService.updateNote(note);
+                model.addAttribute("message", "Note updated!");
+            } else {
+                noteService.insertNote(note);
+                model.addAttribute("message", "Note inserted!");
+            }
+            refreshPageContents(user.getUserid(), model, "nav-notes-tab");
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("message","There has been an error!");
         }
-        refreshPageContents(user.getUserid(), model, "nav-notes-tab");
         return "home";
     }
 
     @GetMapping("/deletecredential/{credentialId}")
     public String deleteCredential(@ModelAttribute("credentialForm") Credential credential, @ModelAttribute("noteForm") Note note, @PathVariable Integer credentialId, Principal principal, Model model) {
-        if (credentialService.deleteCredential(credentialId) > 0) {
-            User user = userService.getUser(principal.getName());
-            refreshPageContents(user.getUserid(), model, "nav-credentials-tab");
+        try {
+            if (credentialService.deleteCredential(credentialId) > 0) {
+                User user = userService.getUser(principal.getName());
+                refreshPageContents(user.getUserid(), model, "nav-credentials-tab");
+                model.addAttribute("message","Credential deleted!");
+            } else {
+                model.addAttribute("message","There has been an error!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("message","There has been an error!");
         }
         return "home";
     }
 
     @PostMapping("/insertupdatecredential")
     public String insertUpdateCredential(@ModelAttribute("credentialForm") Credential credential, @ModelAttribute("noteForm") Note note, Principal principal, Model model) {
-        User user = userService.getUser(principal.getName());
-        credential.setUserid(user.getUserid());
+        try {
+            User user = userService.getUser(principal.getName());
+            credential.setUserid(user.getUserid());
 
-        if (credential.getCredentialid() != null) {
-            credentialService.updateCredential(credential);
-        } else {
-            credentialService.insertCredential(credential);
+            if (credential.getCredentialid() != null) {
+                credentialService.updateCredential(credential);
+                model.addAttribute("message", "Credential updated!");
+            } else {
+                if (credentialService.existCredential(credential.getUrl())) {
+                    model.addAttribute("message", "Credential url exists!");
+                } else {
+                    credentialService.insertCredential(credential);
+                    model.addAttribute("message", "Credential inserted!");
+                }
+            }
+            refreshPageContents(user.getUserid(), model, "nav-credentials-tab");
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("message","There has been an error!");
         }
-        refreshPageContents(user.getUserid(), model, "nav-credentials-tab");
         return "home";
     }
 
