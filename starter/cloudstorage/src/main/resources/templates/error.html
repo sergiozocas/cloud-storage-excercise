@@ -11,8 +11,11 @@
 <body class="p-3 mb-2 bg-light text-black">
 <div class="container justify-content-center w-50 p-3" style="background-color: #eeeeee; margin-top: 5em;">
     <h1 class="display-5">Something went wrong! </h1>
-    <p class="font-weight-bold">Check you are using a correct URL</p>
-    <a th:href="@{/home}">Go Home</a>
+    <p class="font-weight-bold alert alert-danger" th:if="${message != null}" th:text="${message}">Error message</p>
+    <p th:if="${message == null}">Check you are using a correct URL</p>
+    <p><a th:href="@{/home}">Try go back to the SuperDudeDrive page...</a></p>
+    <p><a th:href="@{/login}">or back to the Login page.</a></p>
+
 </div>
 </body>
 </html>
